@@ -67,6 +67,15 @@ class CobaltLang:
                         except ValueError:
                             raise ValueError('Integer variable can contain only numbers')
 
+                    case 'bool':
+                        try:
+                            var_info = ''.join(command[1:]).split('=')
+                            var_name = var_info[0]
+                            var_value = self.__create_bool_var(var_info[1])
+                            self._variables[var_name] = var_value
+                        except:
+                            raise SyntaxError
+
                     case 'func':
                         try:
                             func_info = command[1:]
@@ -136,6 +145,113 @@ class CobaltLang:
             number += string[0]
             string = string[1:]
         return result[0]
+
+    def __create_bool_var(self, string: str) -> bool:
+        def compress_result():
+            nonlocal result
+            fir, sign, sec = result[:3]
+            
+            match sign:
+                case '--':
+                    new = fir == sec
+                case '!-':
+                    new = fir != sec
+                case '<<':
+                    new = fir < sec
+                case '>>':
+                    new = fir > sec
+                case '<-':
+                    new = fir <= sec
+                case '>-':
+                    new = fir >= sec
+                case _:
+                    raise SyntaxError
+
+            result = [new, result[-1]]
+
+        string = string.replace(' ', '') + '\\'
+        result = []
+        ex = ''
+
+        while string != '':
+            ex += string[0]
+            string = string[1:]
+
+            if ex[-1] in ['<', '>', '-', '!', '\\']:
+                var = ex[:-1]
+                
+                if ex[-1] != '\\':
+                    ex += string[0]
+                    string = string[1:]
+
+                if var.isdigit():
+                    var = int(var)
+                elif var == 'true':
+                    var = True
+                elif var == 'false':
+                    var = False
+                elif var in self._variables.keys():
+                    var = self._variables[var]
+                else:
+                    raise SyntaxError
+                
+                result.append(var)
+                result.append(ex[-2:])
+                ex = ''
+
+                if len(result) == 4:
+                    compress_result()
+
+        return result[0]
+
+    def __calc_bool_exp(self, string: str) -> bool:
+        def compress_result():
+            nonlocal result
+            fir, sign, sec = result[:3]
+
+            match sign:
+                case '&':
+                    new = fir and sec
+                case '|':
+                    new = fir or sec
+                case _:
+                    raise SyntaxError(f'Sign "{sign}" is not exists')
+
+            result = [new, result[-1]]
+        
+        string = string.replace(' ', '') + '\\'
+        result = []
+        exp = ''
+
+        while string != '':
+            exp += string[0]
+            string = string[1:]
+
+            if exp[-1] in ['&', '|', '\\']:
+                var = exp[:-1]
+                swap = var[0] == '!'
+                if swap: var = var[1:]
+
+                if var in self._variables.keys():
+                    var = bool(self._variables[var])
+                elif var == 'true':
+                    var = True
+                elif var == 'false':
+                    var = False
+                else:
+                    raise VariableError('Variable is not exists')
+                
+                if swap: var = not var
+                
+                result.append(var)
+                result.append(exp[-1])
+                exp = ''
+
+                if len(result) == 4:
+                    compress_result()
+
+        return result[0]
+                
 
 
 cobalt = CobaltLang()
