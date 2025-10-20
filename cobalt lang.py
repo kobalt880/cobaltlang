@@ -7,6 +7,9 @@ class CobaltLang:
         self._variables = {}
 
     def command(self, command: str):
+        if command == '' or command == '#':
+            return
+        
         if command[:4] != 'func':
             commands = command.split(',')
         else:
@@ -90,10 +93,29 @@ class CobaltLang:
                             func_name = command[1]
                             self._variables[func_name]()
                         except KeyError:
-                            raise NameError
+                            raise NameError('Function not found')
+
+                    case 'if':
+                        if_block = ' '.join(command[1:]).split(' then ')
+                        if_block = [if_block[0]] + if_block[1].split(' else ')
+                        expression = if_block[0].strip()
+                        action = if_block[1].strip()
+                        else_action = if_block[2].strip()
+
+                        if self.__calc_bool_exp(expression):
+                            self.command(action)
+                        else:
+                            self.command(else_action)
+                        
         
                     case _:
-                        raise SyntaxError
+                        raise SyntaxError('Invalid command')
+
+    def interprent(self, code: str):
+        strings = code.split('\n')
+
+        for string in strings:
+            self.command(string)
 
     def __calculate(self, string: str) -> int:
         def compress_result():
@@ -255,6 +277,21 @@ class CobaltLang:
 
 
 cobalt = CobaltLang()
-while command := input('>> '):
-    cobalt.command(command)
+cobalt.interprent(
+'''
+int a = 10
+int reserv = a
+str string = ------------------
+int num = reserv ^ 5
+
+func power-a int a = a * reserv, show a
+func show-if-need bool show = a -- num, if show then show string else #
+func merge call power-a, call show-if-need
+
+show a
+repeat 10 times call merge
+''')
+
+
+
 
