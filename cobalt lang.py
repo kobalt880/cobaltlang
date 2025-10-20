@@ -5,7 +5,6 @@ class VariableError(Exception):
 class CobaltLang:
     def __init__(self):
         self._variables = {}
-        self._functions = {}
 
     def command(self, command: str):
         if command[:4] != 'func':
@@ -73,13 +72,16 @@ class CobaltLang:
                             func_info = command[1:]
                             func_name = func_info[0]
                             func_code = ' '.join(func_info[1:])
-                            self._functions[func_name] = lambda: self.command(func_code)
+                            self._variables[func_name] = lambda: self.command(func_code)
                         except:
                             raise SyntaxError
 
                     case 'call':
-                        func_name = command[1]
-                        self._functions[func_name]()
+                        try:
+                            func_name = command[1]
+                            self._variables[func_name]()
+                        except KeyError:
+                            raise NameError
         
                     case _:
                         raise SyntaxError
