@@ -12,7 +12,7 @@ class CobaltLang:
             return
 
         # function and spliting test
-        if command[:4] != 'func':
+        if command[:4] != 'func' and command[:3] != 'str':
             commands = command.split(',')
         else:
             commands = [command]
@@ -101,6 +101,18 @@ class CobaltLang:
                         except AssertionError:
                             raise SyntaxError('Boolean var is not created: invalid syntax')
 
+                    case 'int-input':
+                        try:
+                            var_name = command[1]
+                            var_value = int(input('>> '))
+                            self.command(f'int {var_name} = {var_value}')
+                            
+                        except IndexError:
+                            raise SyntaxError('Variable name not given')
+
+                        except ValueError:
+                            raise ValueError('Integer expected')
+
                     case 'func':
                         func_info = command[1:]
                         func_name = func_info[0]
@@ -141,6 +153,7 @@ class CobaltLang:
                 self.command(string)
             except (SyntaxError, VariableError, NameError) as er:
                 print(f'Exception on {string_number + 1}th string: {er}')
+                break
 
 
     def __compress_result(self, result: list) -> list:
@@ -185,6 +198,9 @@ class CobaltLang:
         
 
     def __calculate(self, string: str) -> int:
+        if string[0] == '-':
+            string = '0' + string
+            
         string = string.replace(' ', '') + '\\'
         number = ''
         result = []
@@ -193,16 +209,18 @@ class CobaltLang:
             string = string[1:]
             
             if number[-1] in ['+', '-', '*', '/', '^', '%', ':', '\\']:
-                val = number[:-1]
+                var = number[:-1]
                         
-                if val.isdigit():
-                    val = int(val)
-                elif val in self._variables.keys():
-                    val = self._variables[val]
+                if var.isdigit():
+                    var = int(var)
+                elif var in self._variables.keys():
+                    var = self._variables[var]
+                elif var == '':
+                    raise SyntaxError('Incorrectly entered expression')
                 else:
-                    raise VariableError(f'Variable {val} is not exists')
+                    raise VariableError(f'Variable {var} is not exists')
                             
-                result.append(val)
+                result.append(var)
                 result.append(number[-1])
                 number = ''
 
@@ -235,6 +253,8 @@ class CobaltLang:
                     var = False
                 elif var in self._variables.keys():
                     var = self._variables[var]
+                elif var == '':
+                    raise SyntaxError('Incorrectly entered expression')
                 else:
                     raise VariableError(f'Variable {var} is not exists')
                 

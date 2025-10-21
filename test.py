@@ -3,11 +3,14 @@ from cobalt_lang import *
 cobalt = CobaltLang()
 cobalt.interprent(
 '''
-int iter_count = 101
+str message = Input 10 numbers. if number divides to 2, programm write ":)"
+str smile = :)
 
-func update-vars int ost = i % 2, comp even = ost -- 0
-func condition if even then show i else #
-func merge call update-vars, call condition
-repeat iter_count times call merge
+func upd-vars int-input input, int cost = input % 2, comp write = cost -- 0
+func condition if write then show smile else #
+func merge call upd-vars, call condition
+
+show message
+repeat 10 times call merge
 
 ''')
