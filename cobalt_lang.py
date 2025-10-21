@@ -70,10 +70,10 @@ class CobaltLang:
                     case 'str':
                         try:
                             var_info = ' '.join(command[1:]).split('=')
-                            assert len(var_info) == 2
+                            assert len(var_info) >= 2
                     
                             var_name = var_info[0].replace(' ', '')
-                            var_value = var_info[1].strip()
+                            var_value = '='.join(var_info[1:]).strip()
                             self._variables[var_name] = var_value
     
                         except AssertionError:
@@ -151,7 +151,7 @@ class CobaltLang:
         for string_number, string in enumerate(strings):
             try:
                 self.command(string)
-            except (SyntaxError, VariableError, NameError) as er:
+            except (SyntaxError, VariableError, NameError, ValueError) as er:
                 print(f'Exception on {string_number + 1}th string: {er}')
                 break
 
@@ -288,7 +288,7 @@ class CobaltLang:
                 elif var == 'false':
                     var = False
                 else:
-                    raise VariableError('Variable is not exists')
+                    raise VariableError(f'Variable {var} is not exists')
                 
                 if swap: var = not var
                 
