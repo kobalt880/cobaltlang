@@ -20,22 +20,27 @@ class CobaltLang:
         for command in commands:
             command = command.split()
             times = 1
+            chan_var = 'i'
 
             # cycle test
             if command[0] == 'repeat' and command[1] != '' and command[2] == 'times':
-                if command[1].isdigit():
-                    times = int(command[1])
-                elif command[1] in self._variables.keys():
-                    times = self._variables[command[1]]
-                else:
-                    raise VariableError(f'Variable {command[1]} is not exists')
+                iter_info = command[1].split('-')
                 
+                if iter_info[0].isdigit():
+                    times = int(iter_info[0])
+                elif iter_info[0] in self._variables.keys():
+                    times = self._variables[iter_info[0]]
+                else:
+                    raise VariableError(f'Variable {iter_info[0]} is not exists')
+
+                if len(iter_info) >= 2:
+                    chan_var = iter_info[1]
                 command = command[3:]
 
             # start executing
             for i in range(times):
-                if times > 1:
-                    self._variables['i'] = i
+                if times > 1 or chan_var != 'i':
+                    self._variables[chan_var] = i
 
                 # define command
                 match command[0]:
